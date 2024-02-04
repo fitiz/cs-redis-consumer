@@ -1,6 +1,6 @@
 package com.fitiz.csredisconsumer.service;
 
-import com.fitiz.csredisconsumer.model.LeaderboardChangeTime;
+import com.fitiz.csredisconsumer.model.LeaderboardChangeData;
 import com.fitiz.csredisconsumer.model.StepCountUpdateData;
 import com.fitiz.csredisconsumer.repository.LeaderboardRedisRepository;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +24,7 @@ public class StepCountRedisConsumer {
 
     public static final String LEADERBOARD_KEY_PREFIX = "challenge-";
 
-    private final KafkaTemplate<String, LeaderboardChangeTime> kafkaLeaderboardChangeTemplate;
+    private final KafkaTemplate<String, LeaderboardChangeData> kafkaLeaderboardChangeTemplate;
     private final LeaderboardRedisRepository leaderboardRedisRepository;
 
     @KafkaListener(
@@ -35,15 +35,15 @@ public class StepCountRedisConsumer {
     public void stepCountRedisConsumer(ConsumerRecord<String, StepCountUpdateData> record) {
         var stepCountUpdateData = record.value();
         var steps = stepCountUpdateData.steps();
-        var leaderboardCollectionKey = LEADERBOARD_KEY_PREFIX + stepCountUpdateData.challengeId();
+        var leaderboardKey = LEADERBOARD_KEY_PREFIX + stepCountUpdateData.challengeId();
 
         log.info("Step count consumed, [user: {}, step count: {}]", stepCountUpdateData.username(), steps);
-        leaderboardRedisRepository.updateSteps(leaderboardCollectionKey, steps, stepCountUpdateData.username());
+        leaderboardRedisRepository.updateSteps(leaderboardKey, steps, stepCountUpdateData.username());
         log.info("Step count added to redis leaderboard...");
 
         long changeTimestampMs = getTimestampMs(stepCountUpdateData.createdAt());
         kafkaLeaderboardChangeTemplate.send(LEADERBOARD_CHANGE_TOPIC,
-                new LeaderboardChangeTime(changeTimestampMs));
+                new LeaderboardChangeData(leaderboardKey, changeTimestampMs));
         log.info("Leaderboard change timestamp {} published to Kafka...", changeTimestampMs);
     }
 
