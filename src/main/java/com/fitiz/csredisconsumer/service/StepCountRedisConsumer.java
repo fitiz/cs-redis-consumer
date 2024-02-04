@@ -17,7 +17,7 @@ import java.time.ZoneOffset;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class StepCountConsumer {
+public class StepCountRedisConsumer {
 
     @Value("${prop.config.broker-properties.leaderboard-change-topic}")
     public String LEADERBOARD_CHANGE_TOPIC;
@@ -37,14 +37,14 @@ public class StepCountConsumer {
         var steps = stepCountUpdateData.steps();
         var leaderboardCollectionKey = LEADERBOARD_KEY_PREFIX + stepCountUpdateData.challengeId();
 
-        log.info("Step count consumed , user: {}, score: {} ", stepCountUpdateData.username(), steps);
+        log.info("Step count consumed, [user: {}, step count: {}]", stepCountUpdateData.username(), steps);
         leaderboardRedisRepository.updateSteps(leaderboardCollectionKey, steps, stepCountUpdateData.username());
-        log.info("Step count for user: {} , step count : {} added to redis leaderboard", stepCountUpdateData.username(), steps);
+        log.info("Step count added to redis leaderboard...");
 
         long changeTimestampMs = getTimestampMs(stepCountUpdateData.createdAt());
         kafkaLeaderboardChangeTemplate.send(LEADERBOARD_CHANGE_TOPIC,
                 new LeaderboardChangeTime(changeTimestampMs));
-        log.info("Leaderboard change timestamp {} published to kafka", changeTimestampMs);
+        log.info("Leaderboard change timestamp {} published to Kafka...", changeTimestampMs);
     }
 
     public long getTimestampMs(LocalDateTime localDateTime) {
