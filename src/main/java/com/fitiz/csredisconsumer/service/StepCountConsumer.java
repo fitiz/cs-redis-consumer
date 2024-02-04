@@ -41,10 +41,10 @@ public class StepCountConsumer {
         leaderboardRedisRepository.updateSteps(leaderboardCollectionKey, steps, stepCountUpdateData.username());
         log.info("Step count for user: {} , step count : {} added to redis leaderboard", stepCountUpdateData.username(), steps);
 
+        long changeTimestampMs = getTimestampMs(stepCountUpdateData.createdAt());
         kafkaLeaderboardChangeTemplate.send(LEADERBOARD_CHANGE_TOPIC,
-                new LeaderboardChangeTime(getTimestampMs(stepCountUpdateData.createdAt())));
-        log.info("Leaderboard change for user: {}, step count: {} timestamp published to kafka",
-                stepCountUpdateData.username(), steps);
+                new LeaderboardChangeTime(changeTimestampMs));
+        log.info("Leaderboard change timestamp {} published to kafka", changeTimestampMs);
     }
 
     public long getTimestampMs(LocalDateTime localDateTime) {
