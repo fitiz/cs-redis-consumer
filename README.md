@@ -1,6 +1,6 @@
 ### Challenge service Kafka consumer for Redis
 
-- Kafka consumer for updating the leaderbord sorted set in Redis
+- Kafka consumer for updating the leaderboard sorted set in Redis
 
 ```java
 @KafkaListener(
