@@ -1,6 +1,6 @@
 ### Challenge service Kafka consumer for Redis
 
-- Kafka consumer for updating the leaderbord sorted set in Redis
+- Kafka consumer for updating the leaderboard sorted set in Redis
 
 ```java
 @KafkaListener(
@@ -13,13 +13,13 @@
         var steps = stepCountUpdateData.steps();
         var leaderboardCollectionKey = LEADERBOARD_KEY_PREFIX + stepCountUpdateData.challengeId();
 
-        log.info("Step count consumed , user: {}, score: {} ", stepCountUpdateData.username(), steps);
+        log.info("Step count consumed, [user: {}, step count: {}]", stepCountUpdateData.username(), steps);
         leaderboardRedisRepository.updateSteps(leaderboardCollectionKey, steps, stepCountUpdateData.username());
-        log.info("Step count for user: {} , step count : {} added to redis leaderboard", stepCountUpdateData.username(), steps);
+        log.info("Step count added to redis leaderboard...");
 
+        long changeTimestampMs = getTimestampMs(stepCountUpdateData.createdAt());
         kafkaLeaderboardChangeTemplate.send(LEADERBOARD_CHANGE_TOPIC,
-                new LeaderboardChangeTime(getTimestampMs(stepCountUpdateData.createdAt())));
-        log.info("Leaderboard change for user: {}, step count: {} timestamp published to kafka",
-                stepCountUpdateData.username(), steps);
+                new LeaderboardChangeTime(changeTimestampMs));
+        log.info("Leaderboard change timestamp {} published to Kafka...", changeTimestampMs);
     }
 ```
