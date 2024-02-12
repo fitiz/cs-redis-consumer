@@ -1,6 +1,7 @@
 ### Challenge service Kafka consumer for Redis
 
 - Kafka consumer for updating the leaderboard sorted set in Redis
+- Publishes "leaderboard-change" topic indicating which leaderboard changed at which timestamp
 
 ```java
 @KafkaListener(
